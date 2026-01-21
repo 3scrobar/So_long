@@ -1,56 +1,49 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: tle-saut <tle-saut@student.42perpignan.    +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/12/03 14:34:47 by tle-saut          #+#    #+#              #
-#    Updated: 2025/03/31 16:32:27 by tle-saut         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
 NAME = so_long
 
 CC = cc
-
 CFLAGS = -Wall -Werror -Wextra -g
 
-SRC = so_long.c utils.c move.c init.c draw.c colision.c check.c enemy.c utils2.c
-
-OBJ = $(SRC:%.c=$(OBJDIR)%.o)
-OBJDIR = object/
 SRCDIR = source/
+OBJDIR = object/
+INC_DIR = includes/
 
-MLX_NAME = libmlx.a
-MLX_FLAGS = -L./.minilibx-linux -lmlx -L/usr/lib -I./.minilibx-linux -lXext -lX11 -lm
-MLX_DIR = ./.mlx/
+SRC = so_long.c utils.c move.c init.c draw.c colision.c check.c enemy.c utils2.c
+OBJ = $(addprefix $(OBJDIR), $(SRC:.c=.o))
 
-LIBSX = $(addprefix $(MLX_DIR),$(MLX_NAME))
+# ---- LIBFT
+LIBFT_DIR = libft/
+LIBFT_A = $(LIBFT_DIR)libft.a
+
+# ---- MLX
+MLX_DIR = minilibx-linux/
+MLX_A = $(MLX_DIR)libmlx_Linux.a
+MLX_FLAGS = -L$(MLX_DIR) -lmlx -L/usr/lib -lXext -lX11 -lm
+
+all: $(NAME)
+
+$(NAME): $(LIBFT_A) $(MLX_A) $(OBJ)
+	$(CC) $(CFLAGS) -o $(NAME) $(OBJ) $(LIBFT_A) $(MLX_FLAGS)
+
+$(LIBFT_A):
+	$(MAKE) -C $(LIBFT_DIR)
+
+$(MLX_A):
+	$(MAKE) -C $(MLX_DIR)
+
+$(OBJDIR)%.o: $(SRCDIR)%.c | $(OBJDIR)
+	$(CC) $(CFLAGS) -I$(INC_DIR) -I$(MLX_DIR) -c $< -o $@
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-$(NAME): libft/libft.a .minilibx-linux/libmlx_Linux.a $(OBJDIR) $(OBJ)
-	@$(CC) $(CFLAGS) -o $(NAME) $(OBJ) libft/libft.a .minilibx-linux/libmlx_Linux.a -L$(LIBFT_DIR) -lft -L$(MLX_DIR) $(MLX_FLAGS) -lm
-
-mlx/libmlx_Linux.a:
-	@make all
-
-
-libft/libft.a:
-	@make -C libft
-
-all: $(NAME)
-
-$(OBJDIR)%.o: $(SRCDIR)%.c
-	$(CC) $(CFLAGS) -I$(INC_DIR) -I$(MLX_DIR) -c $< -o $@
-
 clean:
 	rm -f $(OBJ)
+	rm -rf $(OBJDIR)
+	$(MAKE) -C $(LIBFT_DIR) clean
 
 fclean: clean
 	rm -f $(NAME)
+	$(MAKE) -C $(LIBFT_DIR) fclean
 
 re: fclean all
 
